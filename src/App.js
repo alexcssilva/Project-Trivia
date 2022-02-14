@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
+
 import Login from './pages/Login';
+import Screen from './pages/Screen';
 
 import logo from './trivia.png';
 import './App.css';
@@ -12,7 +14,8 @@ export default function App() {
         <img src={ logo } className="App-logo" alt="logo" />
         <BrowserRouter>
           <Switch>
-            <Route path="/" component={ Login } />
+            <Route exact path="/" component={ Login } />
+            <Route exact path="/screen" component={ Screen } />
           </Switch>
         </BrowserRouter>
       </header>
