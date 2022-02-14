@@ -37,7 +37,7 @@ class Login extends Component {
   }
 
   requestAPI = async () => {
-    const { nome, token } = this.state;
+    const { nome } = this.state;
     const { handleName, handleToken } = this.props;
 
     const request = await fetch(URL_API);
@@ -56,11 +56,17 @@ class Login extends Component {
     history.push('/screen');
   }
 
+  roteSettings = () => {
+    const { history } = this.props;
+    history.push('/settings');
+  }
+
   render() {
     const {
       nome,
       email,
       isDisabled,
+      token,
     } = this.state;
     return (
       <>
@@ -99,18 +105,26 @@ class Login extends Component {
         >
           Play
         </button>
+        <button
+          type="button"
+          data-testid="btn-settings"
+          onClick={ () => this.roteSettings() }
+        >
+          Settings
+        </button>
+        <p>{ token }</p>
       </>
     );
   }
 }
 
 Login.propTypes = {
-  handleName: PropTypes.func.isRequired,
-  handleToken: PropTypes.func.isRequired,
+  handleName: PropTypes.func,
+  handleToken: PropTypes.func,
   history: PropTypes.shape({
-    push: PropTypes.func.isRequired,
-  }).isRequired,
-};
+    push: PropTypes.func,
+  }),
+}.isRequired;
 
 const mapDispatchToProps = (dispatch) => ({
   handleName(ev) {
