@@ -2,6 +2,7 @@ const initialState = {
   rached: '',
   name: '',
   token: '',
+  email: '',
 };
 
 const login = (state = initialState, action) => {
@@ -20,6 +21,11 @@ const login = (state = initialState, action) => {
     return {
       ...state,
       token: action.payload,
+    };
+  case 'SET_EMAIL':
+    return {
+      ...state,
+      email: action.payload,
     };
   default:
     return state;

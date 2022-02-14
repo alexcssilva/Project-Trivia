@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import md5 from 'crypto-js/md5';
 
 const redStyles = {
   border: '3px solid rgb(6, 240, 15)',
@@ -9,6 +10,8 @@ const redStyles = {
 const greenStyles = {
   border: '3px solid rgb(255, 0, 0)',
 };
+
+const URLGeraImagem = 'https://www.gravatar.com/avatar/';
 
 const MIL = 1000;
 
@@ -29,12 +32,23 @@ class Screen extends Component {
       ask: [],
       time: 30,
       points: [],
+      emailIMG: '',
     };
   }
 
   componentDidMount() {
     this.generateAsk();
     this.teste();
+    this.geraImagem();
+  }
+
+  geraImagem = () => {
+    const { email } = this.props;
+    const rached = md5(email).toString();
+    console.log(rached);
+    this.setState({
+      emailIMG: `${URLGeraImagem}${rached}`,
+    });
   }
 
   generateAsk = async () => {
@@ -67,8 +81,8 @@ class Screen extends Component {
 
   pontuation = () => {
     const { time, ask, index, points } = this.state;
-    console.log(time);
-    console.log(ask[index]);
+    // console.log(time);
+    // console.log(ask[index]);
     const atual = DEZ + time * score[ask[index].difficulty];
     this.setState({
       points: [...points, atual],
@@ -77,9 +91,8 @@ class Screen extends Component {
   };
 
   render() {
-    const { index, marked, ask, time, points } = this.state;
+    const { index, marked, ask, time, points, emailIMG } = this.state;
     const { nome } = this.props;
-    console.log(nome);
     return (
       <div>
         <h1 data-testid="header-player-name">{ nome }</h1>
@@ -99,6 +112,11 @@ class Screen extends Component {
         >
           {points.length && points.reduce((acc, curr) => acc + curr)}
         </p>
+        <img
+          src={ emailIMG }
+          data-testid="header-profile-picture"
+          alt="profile"
+        />
         <p>{time}</p>
         {ask.length > 0 && (
           <div>
@@ -142,10 +160,12 @@ class Screen extends Component {
 
 Screen.propTypes = {
   nome: PropTypes.string,
+  email: PropTypes.string,
 }.isRequired;
 
 const mapStateToProps = (state) => ({
   nome: state.name,
+  email: state.email,
   // ask: state.question,
 });
 

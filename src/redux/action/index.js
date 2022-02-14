@@ -12,3 +12,8 @@ export const setToken = (event) => ({
   type: 'SET_TOKEN',
   payload: event,
 });
+
+export const setEmail = (event) => ({
+  type: 'SET_EMAIL',
+  payload: event,
+});

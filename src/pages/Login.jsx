@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 
-import { setName, setToken } from '../redux/action/index';
+import { setName, setToken, setEmail } from '../redux/action/index';
 
 const URL_API = 'https://opentdb.com/api_token.php?command=request';
 
@@ -37,8 +37,8 @@ class Login extends Component {
   }
 
   requestAPI = async () => {
-    const { nome } = this.state;
-    const { handleName, handleToken } = this.props;
+    const { nome, email } = this.state;
+    const { handleName, handleToken, handleEmail } = this.props;
 
     const request = await fetch(URL_API);
     const requestJSON = await request.json();
@@ -51,6 +51,7 @@ class Login extends Component {
 
     handleName(nome);
     handleToken(requestJSON.token);
+    handleEmail(email);
 
     const { history } = this.props;
     history.push('/screen');
@@ -132,6 +133,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   handleToken(ev) {
     dispatch(setToken(ev));
+  },
+  handleEmail(ev) {
+    dispatch(setEmail(ev));
   },
 });
 
