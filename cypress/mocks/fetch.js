@@ -11,6 +11,7 @@ const fetch = (url) => {
   return Promise.resolve({
     status: Object.keys(urls).includes(url) ? 200 : 404,
     ok: Object.keys(urls).includes(url),
+
     json: () => {
       return Object.keys(urls).includes(url)
         ? Promise.resolve(urls[url])
