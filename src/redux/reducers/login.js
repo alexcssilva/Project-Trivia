@@ -3,6 +3,12 @@ const initialState = {
   name: '',
   token: '',
   email: '',
+  player: {
+    name: '',
+    assertions: 0,
+    score: 0,
+    gravatarEmail: '',
+  },
 };
 
 const login = (state = initialState, action) => {
@@ -26,6 +32,16 @@ const login = (state = initialState, action) => {
     return {
       ...state,
       email: action.payload,
+    };
+  case 'SET_SCORE':
+    return {
+      ...state,
+      score: action.payload,
+    };
+  case 'SET_PLAYER':
+    return {
+      ...state,
+      player: { ...action.payload },
     };
   default:
     return state;

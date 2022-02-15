@@ -2,24 +2,20 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import md5 from 'crypto-js/md5';
+import { setPlayer } from '../redux/action/index';
 
 const redStyles = {
   border: '3px solid rgb(6, 240, 15)',
 };
-
 const greenStyles = {
   border: '3px solid rgb(255, 0, 0)',
 };
-
 const MENOS_UM = -1;
-
 const URLGeraImagem = 'https://www.gravatar.com/avatar/';
-
-// const MIL = 1000;
-
+const MIL = 1000;
 const DEZ = 10;
-
-const score = {
+const QUATRO = 4;
+const scoreQuestion = {
   hard: 3,
   medium: 2,
   easy: 1,
@@ -30,19 +26,27 @@ class Screen extends Component {
     super();
     this.state = {
       index: 0,
-      // marked: false,
       ask: [],
       time: 30,
-      points: [],
       emailIMG: '',
       storeQuestions: [],
       storeAnswers: [],
       randomStore: [],
+      isDisabled: false,
+      assertions: 0,
+      score: 0,
+      player: {
+        name: '',
+        assertions: 0,
+        score: 0,
+        gravatarEmail: '',
+      },
     };
   }
 
   componentDidMount() {
     this.generateAsk();
+    this.contaTempo();
   }
 
   geraImagem = () => {
@@ -68,36 +72,32 @@ class Screen extends Component {
       storeQuestions: [...questions],
       storeAnswers: [...answers],
     });
-    // this.contaTempo();
     this.geraImagem();
     this.randomQuests();
   };
 
-  // contaTempo = () => {
-  //   this.contador = setInterval(() => {
-  //     const { time } = this.state;
-
-  //     this.setState((prevState) => ({
-  //       time: prevState.time - 1,
-  //     }));
-
-  //     if (time === 0) {
-  //       clearInterval(this.contador);
-  //       this.setState(() => ({
-  //         marked: true,
-  //         time: 30,
-  //       }));
-  //     }
-  //   }, MIL);
-  // };
+  contaTempo = () => {
+    this.contador = setInterval(() => {
+      const { time } = this.state;
+      this.setState((prevState) => ({
+        time: prevState.time - 1,
+      }));
+      if (time === 0) {
+        clearInterval(this.contador);
+        this.setState(() => ({
+          isDisabled: true,
+          time: 30,
+        }));
+      }
+    }, MIL);
+  };
 
   pontuation = () => {
-    const { time, ask, index, points } = this.state;
-    const atual = DEZ + time * score[ask[index].difficulty];
+    const { time, ask, index, score } = this.state;
+    const atual = DEZ + time * scoreQuestion[ask[index].difficulty];
     this.setState({
-      points: [...points, atual],
+      score: score + atual,
     });
-    localStorage.setItem('atual', atual.toString());
   };
 
   randomQuests = () => {
@@ -121,31 +121,47 @@ class Screen extends Component {
 
   render() {
     const {
-      index,
-      ask,
-      time,
-      points,
-      emailIMG,
-      randomStore,
-      storeAnswers,
-    } = this.state;
-    const { nome } = this.props;
+      index, ask, time, emailIMG, randomStore,
+      storeAnswers, isDisabled, assertions,
+      score, player } = this.state;
+    const { nome, email, handlePlayer } = this.props;
+    console.log(player);
     return (
       <div>
         <h1 data-testid="header-player-name">{nome}</h1>
-        <button
-          data-testid="btn-next"
-          type="button"
-          onClick={ () => this.setState({
-            index: index + 1,
-            // marked: false,
-            time: 30,
-          }) }
-        >
-          Next
-        </button>
+        {
+          isDisabled
+          && (
+            <button
+              data-testid="btn-next"
+              type="button"
+              onClick={ () => {
+                this.setState({
+                  index: index + 1,
+                  isDisabled: false,
+                  time: 30,
+                  player: {
+                    name: nome,
+                    assertions,
+                    score,
+                    gravatarEmail: email,
+                  },
+                });
+                localStorage.setItem('player', JSON.stringify(player));
+                this.contaTempo();
+                if (index === QUATRO) {
+                  const { history } = this.props;
+                  history.push('/feedback');
+                  this.setState({ score: 0 });
+                }
+              } }
+            >
+              Next
+            </button>
+          )
+        }
         <p data-testid="header-score">
-          {points.length && points.reduce((acc, curr) => acc + curr)}
+          { score }
         </p>
         <img
           src={ emailIMG }
@@ -165,33 +181,49 @@ class Screen extends Component {
             </p>
           </div>
         )}
-
         <div
           data-testid="answer-options"
         >
           {
-            randomStore.map((question, ind) => question.map((quest, i) => (
-              storeAnswers[ind].indexOf(quest) > MENOS_UM ? (
-                <p
+            randomStore.length > 1
+            && randomStore[index].map((quest, i) => (
+              storeAnswers[index].indexOf(quest) > MENOS_UM ? (
+                <button
                   data-testid="correct-answer"
+                  type="button"
                   key={ i }
                   style={ redStyles }
+                  disabled={ isDisabled }
+                  onClick={ () => {
+                    this.setState({
+                      isDisabled: !isDisabled,
+                      assertions: assertions + 1,
+                    });
+                    this.pontuation();
+                    handlePlayer(player);
+                  } }
                 >
                   {i + 1}
                   {' - '}
                   {quest}
-                </p>
+                </button>
               ) : (
-                <p
+                <button
                   data-testid={ `wrong-answer-${i}` }
+                  type="button"
                   key={ i }
                   style={ greenStyles }
+                  disabled={ isDisabled }
+                  onClick={ () => {
+                    this.setState({ isDisabled: !isDisabled });
+                    handlePlayer(player);
+                  } }
                 >
                   {i + 1}
                   {' - '}
                   {quest}
-                </p>
-              ))))
+                </button>
+              )))
           }
         </div>
       </div>
@@ -204,10 +236,14 @@ Screen.propTypes = {
   email: PropTypes.string,
 }.isRequired;
 
+const mapDispatchToProps = (dispatch) => ({
+  handlePlayer(ev) {
+    dispatch(setPlayer(ev));
+  },
+});
+
 const mapStateToProps = (state) => ({
   nome: state.name,
   email: state.email,
-  // ask: state.question,
 });
-
-export default connect(mapStateToProps, null)(Screen);
+export default connect(mapStateToProps, mapDispatchToProps)(Screen);
