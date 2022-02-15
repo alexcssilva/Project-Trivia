@@ -17,3 +17,13 @@ export const setEmail = (event) => ({
   type: 'SET_EMAIL',
   payload: event,
 });
+
+export const setPlayer = (event) => ({
+  type: 'SET_PLAYER',
+  payload: event,
+});
+
+export const setScore = (event) => ({
+  type: 'SET_SCORE',
+  payload: event,
+});
