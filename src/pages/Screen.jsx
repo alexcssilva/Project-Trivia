@@ -4,17 +4,14 @@ import PropTypes from 'prop-types';
 import md5 from 'crypto-js/md5';
 import { setPlayer } from '../redux/action/index';
 
-const redStyles = {
-  border: '3px solid rgb(6, 240, 15)',
-};
-const greenStyles = {
-  border: '3px solid rgb(255, 0, 0)',
-};
+const redStyles = { border: '3px solid rgb(6, 240, 15)' };
+const greenStyles = { border: '3px solid rgb(255, 0, 0)' };
 const MENOS_UM = -1;
 const URLGeraImagem = 'https://www.gravatar.com/avatar/';
 const MIL = 1000;
 const DEZ = 10;
 const QUATRO = 4;
+const CINCO = 5;
 const scoreQuestion = {
   hard: 3,
   medium: 2,
@@ -93,10 +90,11 @@ class Screen extends Component {
   };
 
   pontuation = () => {
-    const { time, ask, index, score } = this.state;
+    const { time, ask, index, score, assertions } = this.state;
     const atual = DEZ + time * scoreQuestion[ask[index].difficulty];
     this.setState({
       score: score + atual,
+      assertions: assertions + 1,
     });
   };
 
@@ -119,13 +117,24 @@ class Screen extends Component {
     });
   };
 
+  teste = () => {
+    const { player, index } = this.state;
+    const { handlePlayer } = this.props;
+    localStorage.setItem('player', JSON.stringify(player));
+    this.contaTempo();
+    handlePlayer(player);
+    if (index === QUATRO + 1) {
+      const { history } = this.props;
+      history.push('/feedback');
+    }
+  }
+
   render() {
     const {
       index, ask, time, emailIMG, randomStore,
       storeAnswers, isDisabled, assertions,
       score, player } = this.state;
-    const { nome, email, handlePlayer } = this.props;
-    console.log(player);
+    const { nome, handlePlayer } = this.props;
     return (
       <div>
         <h1 data-testid="header-player-name">{nome}</h1>
@@ -144,16 +153,9 @@ class Screen extends Component {
                     name: nome,
                     assertions,
                     score,
-                    gravatarEmail: email,
+                    gravatarEmail: emailIMG,
                   },
-                });
-                localStorage.setItem('player', JSON.stringify(player));
-                this.contaTempo();
-                if (index === QUATRO) {
-                  const { history } = this.props;
-                  history.push('/feedback');
-                  this.setState({ score: 0 });
-                }
+                }, () => this.teste());
               } }
             >
               Next
@@ -169,7 +171,7 @@ class Screen extends Component {
           alt="profile"
         />
         <p>{time}</p>
-        {ask.length > 0 && (
+        {ask.length > 0 && index < CINCO && (
           <div>
             <h2 data-testid="question-category">{ask[index].category}</h2>
             <p data-testid="question-text">
@@ -180,13 +182,13 @@ class Screen extends Component {
               {ask[index].question}
             </p>
           </div>
-        )}
+        ) }
         <div
           data-testid="answer-options"
         >
           {
             randomStore.length > 1
-            && randomStore[index].map((quest, i) => (
+            && index < CINCO && randomStore[index].map((quest, i) => (
               storeAnswers[index].indexOf(quest) > MENOS_UM ? (
                 <button
                   data-testid="correct-answer"
@@ -197,8 +199,7 @@ class Screen extends Component {
                   onClick={ () => {
                     this.setState({
                       isDisabled: !isDisabled,
-                      assertions: assertions + 1,
-                    });
+                    }, () => this.teste());
                     this.pontuation();
                     handlePlayer(player);
                   } }
@@ -215,7 +216,9 @@ class Screen extends Component {
                   style={ greenStyles }
                   disabled={ isDisabled }
                   onClick={ () => {
-                    this.setState({ isDisabled: !isDisabled });
+                    this.setState({
+                      isDisabled: !isDisabled,
+                    }, () => this.teste());
                     handlePlayer(player);
                   } }
                 >
@@ -230,18 +233,15 @@ class Screen extends Component {
     );
   }
 }
-
 Screen.propTypes = {
   nome: PropTypes.string,
   email: PropTypes.string,
 }.isRequired;
-
 const mapDispatchToProps = (dispatch) => ({
   handlePlayer(ev) {
     dispatch(setPlayer(ev));
   },
 });
-
 const mapStateToProps = (state) => ({
   nome: state.name,
   email: state.email,
