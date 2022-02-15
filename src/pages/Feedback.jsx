@@ -6,6 +6,16 @@ import { connect } from 'react-redux';
 const TRES = 3;
 
 class Feedback extends Component {
+  jogarNovamente = () => {
+    const { history } = this.props;
+    history.push('/screen');
+  }
+
+  mostrarRanking = () => {
+    const { history } = this.props;
+    history.push('/ranking');
+  }
+
   render() {
     const { player } = this.props;
     console.log(player);
@@ -28,6 +38,22 @@ class Feedback extends Component {
             ? <p data-testid="feedback-text">Could be better...</p>
             : <p data-testid="feedback-text">Well Done!</p>
         }
+        <p data-testid="feedback-total-score">{ player.score }</p>
+        <p data-testid="feedback-total-question">{ player.assertions }</p>
+        <button
+          type="button"
+          onClick={ () => this.jogarNovamente() }
+          data-testid="btn-play-again"
+        >
+          Jogar Novamente
+        </button>
+        <button
+          type="button"
+          onClick={ () => this.mostrarRanking() }
+          data-testid="btn-ranking"
+        >
+          Mostrar Ranking
+        </button>
       </>
     );
   }

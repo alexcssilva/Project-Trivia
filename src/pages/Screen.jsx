@@ -4,20 +4,23 @@ import PropTypes from 'prop-types';
 import md5 from 'crypto-js/md5';
 import { setPlayer } from '../redux/action/index';
 
-const redStyles = { border: '3px solid rgb(6, 240, 15)' };
-const greenStyles = { border: '3px solid rgb(255, 0, 0)' };
+const redStyles = {
+  border: '3px solid rgb(6, 240, 15)',
+};
+const greenStyles = {
+  border: '3px solid rgb(255, 0, 0)',
+};
 const MENOS_UM = -1;
 const URLGeraImagem = 'https://www.gravatar.com/avatar/';
 const MIL = 1000;
 const DEZ = 10;
-const QUATRO = 4;
 const CINCO = 5;
+const QUATRO = 4;
 const scoreQuestion = {
   hard: 3,
   medium: 2,
   easy: 1,
 };
-
 class Screen extends Component {
   constructor() {
     super();
@@ -117,29 +120,18 @@ class Screen extends Component {
     });
   };
 
-  teste = () => {
-    const { player, index } = this.state;
-    const { handlePlayer } = this.props;
-    localStorage.setItem('player', JSON.stringify(player));
-    this.contaTempo();
-    handlePlayer(player);
-    if (index === QUATRO + 1) {
-      const { history } = this.props;
-      history.push('/feedback');
-    }
-  }
-
   render() {
     const {
       index, ask, time, emailIMG, randomStore,
       storeAnswers, isDisabled, assertions,
       score, player } = this.state;
-    const { nome, handlePlayer } = this.props;
+    const { nome, email, handlePlayer } = this.props;
     return (
       <div>
+        <p data-testid="input-gravatar-email">{email}</p>
         <h1 data-testid="header-player-name">{nome}</h1>
         {
-          isDisabled
+          isDisabled && index < CINCO
           && (
             <button
               data-testid="btn-next"
@@ -155,7 +147,17 @@ class Screen extends Component {
                     score,
                     gravatarEmail: emailIMG,
                   },
-                }, () => this.teste());
+                });
+                localStorage.setItem('player', JSON.stringify(player));
+                this.contaTempo();
+                if (index === QUATRO) {
+                  handlePlayer(player);
+                  const { history } = this.props;
+                  history.push('/feedback');
+                  this.setState({
+                    score: 0,
+                  });
+                }
               } }
             >
               Next
@@ -171,7 +173,7 @@ class Screen extends Component {
           alt="profile"
         />
         <p>{time}</p>
-        {ask.length > 0 && index < CINCO && (
+        {ask.length > 0 && (
           <div>
             <h2 data-testid="question-category">{ask[index].category}</h2>
             <p data-testid="question-text">
@@ -182,13 +184,13 @@ class Screen extends Component {
               {ask[index].question}
             </p>
           </div>
-        ) }
+        )}
         <div
           data-testid="answer-options"
         >
           {
-            randomStore.length > 1
-            && index < CINCO && randomStore[index].map((quest, i) => (
+            randomStore.length > 1 && index < CINCO
+            && randomStore[index].map((quest, i) => (
               storeAnswers[index].indexOf(quest) > MENOS_UM ? (
                 <button
                   data-testid="correct-answer"
@@ -199,7 +201,7 @@ class Screen extends Component {
                   onClick={ () => {
                     this.setState({
                       isDisabled: !isDisabled,
-                    }, () => this.teste());
+                    });
                     this.pontuation();
                     handlePlayer(player);
                   } }
@@ -216,9 +218,7 @@ class Screen extends Component {
                   style={ greenStyles }
                   disabled={ isDisabled }
                   onClick={ () => {
-                    this.setState({
-                      isDisabled: !isDisabled,
-                    }, () => this.teste());
+                    this.setState({ isDisabled: !isDisabled });
                     handlePlayer(player);
                   } }
                 >
